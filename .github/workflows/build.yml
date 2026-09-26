@@ -26,9 +26,10 @@ jobs:
         run: |
           wget -q https://github.com/runetfreedom/russia-v2ray-rules-dat/releases/latest/download/geosite.dat -O geosite_orig.dat
           wget -q https://github.com/runetfreedom/russia-v2ray-rules-dat/releases/latest/download/geoip.dat -O geoip.dat
-
       - name: Unpack Geosite
-        run: ~/go/bin/v2dat unpack geosite -o out_geosite geosite_orig.dat
+        run: |
+          mkdir -p out_geosite
+          ~/go/bin/v2dat unpack geosite -o out_geosite geosite_orig.dat
         
       - name: Compile Lightweight Geosite
         run: |
