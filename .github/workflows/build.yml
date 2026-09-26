@@ -34,17 +34,17 @@ jobs:
       - name: Compile Lightweight Geosite
         run: |
           mkdir mydata
-          cp out_geosite/geosite_category-bank-ru.txt mydata/category-bank-ru
-          cp out_geosite/geosite_category-ecommerce-ru.txt mydata/category-ecommerce-ru
-          cp out_geosite/geosite_category-gov-ru.txt mydata/category-gov-ru
-          cp out_geosite/geosite_category-retail-ru.txt mydata/category-retail-ru
-          cp out_geosite/geosite_category-ru.txt mydata/category-ru
-          cp out_geosite/geosite_mailru.txt mydata/mailru
-          cp out_geosite/geosite_mailru-group.txt mydata/mailru-group
-          cp out_geosite/geosite_private.txt mydata/private
-          cp out_geosite/geosite_ru-available-only-inside.txt mydata/ru-available-only-inside
-          cp out_geosite/geosite_yandex.txt mydata/yandex
-          cp out_geosite/geosite_category-ads-all.txt mydata/category-ads-all
+          cp out_geosite/geosite_orig_category-bank-ru.txt mydata/category-bank-ru
+          cp out_geosite/geosite_orig_category-ecommerce-ru.txt mydata/category-ecommerce-ru
+          cp out_geosite/geosite_orig_category-gov-ru.txt mydata/category-gov-ru
+          cp out_geosite/geosite_orig_category-retail-ru.txt mydata/category-retail-ru
+          cp out_geosite/geosite_orig_category-ru.txt mydata/category-ru
+          cp out_geosite/geosite_orig_mailru.txt mydata/mailru
+          cp out_geosite/geosite_orig_mailru-group.txt mydata/mailru-group
+          cp out_geosite/geosite_orig_private.txt mydata/private
+          cp out_geosite/geosite_orig_ru-available-only-inside.txt mydata/ru-available-only-inside
+          cp out_geosite/geosite_orig_yandex.txt mydata/yandex
+          cp out_geosite/geosite_orig_category-ads-all.txt mydata/category-ads-all
           
           ~/go/bin/domain-list-community -datapath mydata -outputname geosite.dat
 
