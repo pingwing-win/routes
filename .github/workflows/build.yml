@@ -25,11 +25,13 @@ jobs:
       - name: Download Original Files
         run: |
           wget -q https://github.com/runetfreedom/russia-v2ray-rules-dat/releases/latest/download/geosite.dat -O geosite_orig.dat
-          wget -q https://github.com/runetfreedom/russia-v2ray-rules-dat/releases/latest/download/geoip.dat -O geoip.dat
-      - name: Unpack Geosite
+          wget -q https://github.com/runetfreedom/russia-v2ray-rules-dat/releases/latest/download/geoip.dat -O geoip_orig.dat
+
+      - name: Unpack Geosite and GeoIP
         run: |
-          mkdir -p out_geosite
+          mkdir -p out_geosite out_geoip
           ~/go/bin/v2dat unpack geosite -o out_geosite geosite_orig.dat
+          ~/go/bin/v2dat unpack geoip -o out_geoip geoip_orig.dat
         
       - name: Compile Lightweight Geosite
         run: |
@@ -47,6 +49,45 @@ jobs:
           cp out_geosite/geosite_orig_category-ads-all.txt mydata/category-ads-all
           
           ~/go/bin/domain-list-community -datapath mydata -outputname geosite.dat
+
+      - name: Compile Lightweight GeoIP
+        run: |
+          mkdir my_geoip
+          cp out_geoip/geoip_orig_ru.txt my_geoip/ru.txt
+          cp out_geoip/geoip_orig_private.txt my_geoip/private.txt
+          
+          # Скрипт-компилятор для сборки geoip.dat
+          cat << 'EOF' > my_geoip/main.go
+          package main
+          import ("bufio"; "os"; "strings"; "net/netip"; "google.golang.org/protobuf/proto"; "github.com/v2fly/v2ray-core/v5/app/router/routercommon")
+          func parse(n string) []*routercommon.CIDR {
+            f, _ := os.Open(n); defer f.Close()
+            var c []*routercommon.CIDR
+            s := bufio.NewScanner(f)
+            for s.Scan() {
+              l := strings.TrimSpace(s.Text())
+              if l == "" || strings.HasPrefix(l, "#") { continue }
+              if !strings.Contains(l, "/") { if strings.Contains(l, ":") { l += "/128" } else { l += "/32" } }
+              p, err := netip.ParsePrefix(l); if err != nil { continue }
+              c = append(c, &routercommon.CIDR{Ip: p.Addr().AsSlice(), Prefix: uint32(p.Bits())})
+            }
+            return c
+          }
+          func main() {
+            d, _ := proto.Marshal(&routercommon.GeoIPList{Entry: []*routercommon.GeoIP{
+              {CountryCode: "RU", Cidr: parse("ru.txt")},
+              {CountryCode: "PRIVATE", Cidr: parse("private.txt")},
+            }})
+            os.WriteFile("geoip.dat", d, 0644)
+          }
+          EOF
+          
+          cd my_geoip
+          go mod init build
+          go get github.com/v2fly/v2ray-core/v5@latest
+          go get google.golang.org/protobuf/proto@latest
+          go run main.go
+          cp geoip.dat ../geoip.dat
 
       - name: Generate Release Tag
         id: tag
