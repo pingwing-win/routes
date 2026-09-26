@@ -1,0 +1,61 @@
+name: Build Custom Geo Data
+
+on:
+  schedule:
+    - cron: '0 2 * * 0' # Автосборка каждое воскресенье в 02:00
+  workflow_dispatch: # Кнопка для ручного запуска в любой момент
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Install Tools
+        run: |
+          go install github.com/urlesistiana/v2dat@latest
+          go install github.com/v2fly/domain-list-community@latest
+
+      - name: Download Original Files
+        run: |
+          wget -q https://github.com/runetfreedom/russia-v2ray-rules-dat/releases/latest/download/geosite.dat -O geosite_orig.dat
+          wget -q https://github.com/runetfreedom/russia-v2ray-rules-dat/releases/latest/download/geoip.dat -O geoip.dat
+
+      - name: Unpack Geosite
+        run: ~/go/bin/v2dat unpack geosite -o out_geosite geosite_orig.dat
+        
+      - name: Compile Lightweight Geosite
+        run: |
+          mkdir mydata
+          cp out_geosite/geosite_category-bank-ru.txt mydata/category-bank-ru
+          cp out_geosite/geosite_category-ecommerce-ru.txt mydata/category-ecommerce-ru
+          cp out_geosite/geosite_category-gov-ru.txt mydata/category-gov-ru
+          cp out_geosite/geosite_category-retail-ru.txt mydata/category-retail-ru
+          cp out_geosite/geosite_category-ru.txt mydata/category-ru
+          cp out_geosite/geosite_mailru.txt mydata/mailru
+          cp out_geosite/geosite_mailru-group.txt mydata/mailru-group
+          cp out_geosite/geosite_private.txt mydata/private
+          cp out_geosite/geosite_ru-available-only-inside.txt mydata/ru-available-only-inside
+          cp out_geosite/geosite_yandex.txt mydata/yandex
+          cp out_geosite/geosite_category-ads-all.txt mydata/category-ads-all
+          
+          ~/go/bin/domain-list-community -datapath mydata -outputname geosite.dat
+
+      - name: Generate Release Tag
+        id: tag
+        run: echo "tag=$(date +'%Y%m%d%H%M')" >> $GITHUB_OUTPUT
+
+      - name: Publish Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          files: |
+            geosite.dat
+            geoip.dat
+          name: Update ${{ steps.tag.outputs.tag }}
