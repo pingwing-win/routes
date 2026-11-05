@@ -47,6 +47,7 @@ jobs:
           cp out_geosite/geosite_orig_ru-available-only-inside.txt mydata/ru-available-only-inside
           cp out_geosite/geosite_orig_yandex.txt mydata/yandex
           cp out_geosite/geosite_orig_category-ads-all.txt mydata/category-ads-all
+          cp out_geosite/geosite_orig_youtube.txt mydata/youtube
           
           ~/go/bin/domain-list-community -datapath mydata -outputname geosite.dat
 
